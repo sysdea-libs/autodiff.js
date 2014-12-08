@@ -1,9 +1,9 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <script src="../lib/estraverse.js"></script>
-    <script src="../lib/esprima.js"></script>
-    <script src="../lib/escodegen.js"></script>
+    <script src="../vendor/estraverse.js"></script>
+    <script src="../vendor/esprima.js"></script>
+    <script src="../vendor/escodegen.js"></script>
     <style>
       body {
         margin: 0;
@@ -27,9 +27,10 @@
       document.getElementById('pre').innerText += v + "\n";
     }
     </script>
-    <script src="../src/esarith.js"></script>
-    <script src="../src/esarith.dual.js"></script>
-    <script src="../src/esarith.tape.js"></script>
-    <script src="esad.js"></script>
+    <script src="../src/instrumenter.js"></script>
+    <script src="../src/dual.js"></script>
+    <script src="../src/tape.js"></script>
+    <script src="../src/autodiff.js"></script>
+    <script src="test.js"></script>
   </body>
 </html>

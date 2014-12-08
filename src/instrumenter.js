@@ -1,4 +1,4 @@
-esarith = (function () {
+var Instrumenter = (function () {
 
   var bin_map = {
     '+': 'add',
@@ -53,9 +53,9 @@ esarith = (function () {
     }
   };
 
-  var esarith = {};
+  var Instrumenter = {};
 
-  esarith._instrument_ast = function (ast) {
+  Instrumenter._instrument_ast = function (ast) {
     estraverse.replace(ast, {
       enter: function (node, parent) {
         // Rewrite x + y to x.add(y)
@@ -93,7 +93,7 @@ esarith = (function () {
           }
           return node;
         }
-        
+
         // Rewrite Math.<x> to this.<x>
         if (node.type == 'MemberExpression' && node.object.name == "Math") {
           this.skip();
@@ -124,8 +124,8 @@ esarith = (function () {
     return ast;
   };
 
-  esarith._instrument = function (parsed) {
-    var diffed = esarith._instrument_ast(parsed);
+  Instrumenter._instrument = function (parsed) {
+    var diffed = Instrumenter._instrument_ast(parsed);
     var fn_decl = diffed.body[0];
     var params = fn_decl.params.map(function(p) { return p.name });
 
@@ -139,17 +139,17 @@ esarith = (function () {
     return nfn;
   };
 
-  esarith.instrument_fn = function (fn) {
+  Instrumenter.instrument_fn = function (fn) {
     return this._instrument(esprima.parse(fn.toString()));
   };
 
-  esarith.instrument_str = function (str) {
+  Instrumenter.instrument_str = function (str) {
     return this._instrument(esprima.parse(str));
   };
 
-  esarith.instrument_ast = function (ast) {
+  Instrumenter.instrument_ast = function (ast) {
     return this._instrument(ast);
   }
 
-  return esarith;
+  return Instrumenter;
 }());

@@ -1,31 +1,5 @@
-function forward(diffed_fn, args) {
-  var params = diffed_fn.params;
-
-  var result_acc = {};
-
-  args.forEach(function (arg, i) {
-    result_acc[params[i]] = diffed_fn.apply(Dual, args.map(function (arg, j) {
-      return new Dual(arg, i == j ? 1 : 0);
-    })).b;
-  });
-
-  return result_acc;
-};
-
-function reverse(diffed_fn, args) {
-  var params = diffed_fn.params;
-
-  var result = diffed_fn.apply(Tape, args.map(function (arg, j) {
-    return Tape.Variable(arg, params[j]);
-  }));
-
-  result_acc = {};
-  result.opfn(result, 1, result_acc);
-  return result_acc;
-};
-
 function test (fn, args, delta) {
-  var diffed_fn = esarith.instrument_fn(fn);
+  var diffed_fn = AutoDiff.instrument(fn);
   var params = diffed_fn.params;
 
   delta = delta || 1;
@@ -36,7 +10,7 @@ function test (fn, args, delta) {
 
   LOG(fn.name + "(" + args.join(", ") + ") => " + JSON.stringify(fn.apply(null, args)));
 
-  var forward_res = forward(diffed_fn, args);
+  var forward_res = AutoDiff.forward(diffed_fn, args);
 
   var i = 0;
   for (var k in forward_res) {
@@ -52,7 +26,7 @@ function test (fn, args, delta) {
 
   LOG('');
 
-  var reverse_res = reverse(diffed_fn, args);
+  var reverse_res = AutoDiff.reverse(diffed_fn, args);
 
   bench(fn, args);
 
@@ -110,71 +84,71 @@ var neq = function (a, b) {
   return a.toPrecision(8) != b.toPrecision(8);
 };
 
-function verify(f, wrt) {
-  var diffed_fn = esarith.instrument_fn(f);
+// function verify(f, wrt) {
+//   var diffed_fn = AutoDiff.instrument(f);
 
-  var ks = [];
+//   var ks = [];
 
-  for (var k in wrt) {
-    ks.push(k);
-  };
+//   for (var k in wrt) {
+//     ks.push(k);
+//   };
 
-  var start = +new Date();
+//   var start = +new Date();
 
-  for (var i = 0; i < 5000; ++i) {
-    var args = ks.map(function () {
-      return Math.random();
-    });
-    var f_res = forward(diffed_fn, args);
-    var r_res = reverse(diffed_fn, args);
-    var t_res = {};
-    ks.map(function (k) {
-      t_res[k] = wrt[k].apply(null, args);
-    })
-    ks.map(function (k) {
-      if (neq(f_res[k], t_res[k]) || neq(r_res[k], t_res[k])) {
-        console.log("mismatch!", f_res, r_res, t_res);
-      }
-    })
-  }
+//   for (var i = 0; i < 5000; ++i) {
+//     var args = ks.map(function () {
+//       return Math.random();
+//     });
+//     var f_res = AutoDiff.forward(diffed_fn, args);
+//     var r_res = AutoDiff.reverse(diffed_fn, args);
+//     var t_res = {};
+//     ks.map(function (k) {
+//       t_res[k] = wrt[k].apply(null, args);
+//     })
+//     ks.map(function (k) {
+//       if (neq(f_res[k], t_res[k]) || neq(r_res[k], t_res[k])) {
+//         console.log("mismatch!", f_res, r_res, t_res);
+//       }
+//     })
+//   }
 
-  console.log("Verified " + f.name + " in " + (+new Date - start) + "ms");
-}
+//   console.log("Verified " + f.name + " in " + (+new Date - start) + "ms");
+// }
 
 function bench(fn, n_args) {
   var start = +new Date();
   for (var i = 0; i < 100; ++i) {
-    var diffed_fn = esarith.instrument_fn(fn)
+    var diffed_fn = AutoDiff.instrument(fn)
   }
   var end = +new Date();
   LOG("Instrumented: " + (end-start)/100 + "ms");
 
   var start = +new Date();
-  for (var i = 0; i < 10000; ++i) {
-    forward(diffed_fn, n_args.map(function (n) {
+  for (var i = 0; i < 1000; ++i) {
+    AutoDiff.forward(diffed_fn, n_args.map(function (n) {
       return Math.random() * n;
     }));
   }
   var end = +new Date();
-  LOG("Forward: " + (end-start)/10000 + "ms");
+  LOG("Forward: " + (end-start)/1000 + "ms");
 
   var start = +new Date();
-  for (var i = 0; i < 10000; ++i) {
-    reverse(diffed_fn, n_args.map(function (n) {
+  for (var i = 0; i < 1000; ++i) {
+    AutoDiff.reverse(diffed_fn, n_args.map(function (n) {
       return Math.random() * n;
     }));
   }
   var end = +new Date();
-  LOG("Reverse: " + (end-start)/10000 + "ms");
+  LOG("Reverse: " + (end-start)/1000 + "ms");
 }
 
-verify(xcubed, {
-  x: function (x) { return 3 * Math.pow(x, 2); }
-});
+// verify(xcubed, {
+//   x: function (x) { return 3 * Math.pow(x, 2); }
+// });
 
-verify(exp, {
-  n: function (n) { return Math.exp(n); }
-});
+// verify(exp, {
+//   n: function (n) { return Math.exp(n); }
+// });
 
 // verify(messy, {
 //   x: function (x, y) {
